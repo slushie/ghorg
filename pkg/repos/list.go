@@ -6,7 +6,7 @@ import (
 
 type CompareFunc func(a, b *github.Repository) bool
 
-var DefaultCompareFunc CompareFunc = CompareById
+var DefaultCompareFunc CompareFunc = CompareByID
 
 // This type represents a sortable collection of repositories
 type List struct {
@@ -16,7 +16,8 @@ type List struct {
 
 func NewList() *List {
 	return &List{
-		Repos: make([]*github.Repository, 0),
+		// sane default capacity -- ptrs are small.
+		Repos:   make([]*github.Repository, 0, 10),
 		Compare: DefaultCompareFunc,
 	}
 }
@@ -33,6 +34,6 @@ func (l *List) Less(i, j int) bool {
 	return l.Compare(l.Repos[i], l.Repos[j])
 }
 
-func CompareById(a, b *github.Repository) bool {
+func CompareByID(a, b *github.Repository) bool {
 	return a.GetID() < b.GetID()
 }
