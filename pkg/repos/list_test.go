@@ -19,7 +19,19 @@ func TestListType(t *testing.T) {
 				So(castFunc, ShouldNotPanic)
 			})
 
-			Convey("Len()", func() {
+			Convey(".Add(...repos)", func() {
+				Convey("Appends elements to .Repos", func() {
+					subject := NewList()
+					item := &github.Repository{}
+
+					So(subject.Repos, ShouldHaveLength, 0)
+					subject.Add(item)
+					So(subject.Repos, ShouldHaveLength, 1)
+					So(subject.Repos[0], ShouldEqual, item)
+				})
+			})
+
+			Convey(".Len()", func() {
 				var tests = []struct {
 					in  *List
 					out int
@@ -35,7 +47,7 @@ func TestListType(t *testing.T) {
 				})
 			})
 
-			Convey("Swap(i, j int)", func() {
+			Convey(".Swap(i, j int)", func() {
 				var (
 					aID int64 = 1
 					a         = &github.Repository{ID: &aID}
@@ -67,7 +79,7 @@ func TestListType(t *testing.T) {
 
 			})
 
-			Convey("Less(i, j int)", func() {
+			Convey(".Less(i, j int)", func() {
 				var (
 					aID int64 = 1
 					bID int64 = 2

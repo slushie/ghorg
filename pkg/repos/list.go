@@ -22,6 +22,11 @@ func NewList() *List {
 	}
 }
 
+// Append repos... to the list
+func (l *List) Add(repos ...*github.Repository) {
+	l.Repos = append(l.Repos, repos...)
+}
+
 func (l *List) Len() int {
 	return len(l.Repos)
 }
