@@ -1,4 +1,4 @@
-package org
+package api
 
 import (
 	"github.com/google/go-github/github"
@@ -7,14 +7,24 @@ import (
 	"context"
 )
 
-func NewClient(accessToken string) *github.Client {
+// Create a type alias for local extension methods.
+type (
+	Client github.Client
+	castClient = *Client
+)
+
+type RepositoryFetcher func(opt *github.RepositoryListByOrgOptions) ([]*github.Repository, *github.Response, error)
+
+// Create a new Github client
+func NewClient(accessToken string) *Client {
 	var c = http.DefaultClient
 	if accessToken != "" {
 		c = createOAuthClient(accessToken)
 	}
 
 	// TODO support persistent http caching via "httpcache"
-	return github.NewClient(c)
+
+	return castClient(github.NewClient(c))
 }
 
 // TODO use the oauth 3-legged flow to get an access token
@@ -25,4 +35,32 @@ func createOAuthClient(token string) *http.Client {
 	})
 
 	return oauth2.NewClient(ctx, src)
+}
+
+func (c *Client) FetchOrgRepositories(
+	ctx context.Context,
+	org string,
+	opt *github.RepositoryListByOrgOptions) ([]*github.Repository, error) {
+	if opt == nil {
+		opt = &github.RepositoryListByOrgOptions{}
+	}
+
+	// use the max page size of 100 repos
+	opt.ListOptions.PerPage = 100
+
+	// get all pages of results
+	var allRepos []*github.Repository
+	for {
+		repos, resp, err := c.Repositories.ListByOrg(ctx, org, opt)
+		if err != nil {
+			return nil, err
+		}
+		allRepos = append(allRepos, repos...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	return allRepos, nil
 }
