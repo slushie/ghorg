@@ -2,44 +2,66 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/slushie/ghorg/pkg/api"
+	"context"
+	"github.com/slushie/ghorg/pkg/repos"
+	"github.com/google/go-github/github"
 	"github.com/slushie/ghorg/pkg/output"
-	"os"
+	"strings"
+	"strconv"
+	"fmt"
 )
 
 // starsCmd represents the stars command
 var starsCmd = &cobra.Command{
 	Use:   "stars",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		showTable()
-	},
+	Short: "List repos by stargazers",
+	Long:  `List all repositories in the organization, sorted by number of stars.`,
+	Run:   runStars,
 }
 
 func init() {
 	rootCmd.AddCommand(starsCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// starsCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// starsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	addListFlags(starsCmd)
 }
 
-func showTable() {
-	var recs = []output.Record{
-		{"potato": "anytime", "eggs": "8am"},
-		{"potato": "never", "tacos": "3am"},
+func runStars(cmd *cobra.Command, args []string) {
+	gh := api.NewClient(accessToken)
+	ctx := context.Background()
+
+	rs, err := gh.FetchOrgRepositories(ctx, organization, nil)
+	if err != nil {
+		panic(err.Error())
 	}
 
-	recordWriter.WriteRecords(os.Stdout, recs, nil)
+	// these are the relevant fields
+	fields = []string{"Stars", "Name", "URL"}
+
+	// set up the output list
+	repoList = repos.NewList()
+	repoList.Add(rs...)
+	repoList.Marshal = MarshalRepoStars
+	repoList.Compare = CompareRepoStars
+}
+
+func CompareRepoStars(a, b *github.Repository) bool {
+	return a.GetStargazersCount() < b.GetStargazersCount()
+}
+
+func MarshalRepoStars(repo *github.Repository, fields []string) (output.Record, error) {
+	rec := make(output.Record)
+	for _, f := range fields {
+		switch strings.ToLower(f) {
+		case "stars":
+			rec[f] = strconv.Itoa(repo.GetStargazersCount())
+		case "name":
+			rec[f] = repo.GetName()
+		case "url":
+			rec[f] = repo.GetURL()
+		default:
+			return nil, fmt.Errorf("unknown field %v", f)
+		}
+	}
+
+	return rec, nil
 }

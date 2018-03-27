@@ -8,12 +8,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"strings"
-	"github.com/slushie/ghorg/pkg/output"
 )
 
 var cfgFile string
-
-var recordWriter output.RecordWriter
+var organization string
+var accessToken string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -24,8 +23,8 @@ var rootCmd = &cobra.Command{
 You can set your organization via a command line option, environment variable,
 or in the config file. 
 `,
-	PersistentPreRunE: preRun,
-	PersistentPostRun: postRun,
+	PersistentPreRunE:  preRunE,
+	PersistentPostRunE: postRunE,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -47,21 +46,21 @@ func init() {
 		"Path to ghorg config file",
 	)
 
-	rootCmd.PersistentFlags().StringP(
+	rootCmd.PersistentFlags().StringVarP(
+		&organization,
 		"organization",
 		"N",
 		"",
 		"Organization name",
 	)
 
-	rootCmd.PersistentFlags().StringP(
-		"output-format",
-		"F",
-		"table",
-		"Output format. One of: table, json",
+	rootCmd.PersistentFlags().StringVarP(
+		&accessToken,
+		"access-token",
+		"T",
+		"",
+		"Github OAuth2 access token used to authenticate REST calls.",
 	)
-
-	rootCmd.MarkFlagRequired("organization")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -92,21 +91,10 @@ func initConfig() {
 	}
 }
 
-func preRun(cmd *cobra.Command, args []string) error {
-	f, _ := cmd.Flags().GetString("output-format")
-
-	switch strings.ToLower(f) {
-	case "json":
-		recordWriter = output.NewJson()
-	case "table":
-		recordWriter = output.NewTable()
-	default:
-		return fmt.Errorf("invalid output format: %s", f)
+func ensureOrganization(cmd *cobra.Command, args []string) error {
+	if organization == "" {
+		return fmt.Errorf("missing required flag: organization")
 	}
 
 	return nil
-}
-
-func postRun(cmd *cobra.Command, args []string) {
-
 }
