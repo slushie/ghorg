@@ -1,6 +1,6 @@
 # ghorg
 
-Github Organization Management Tool
+Github Organization Statistics Tool
 
 ## Usage
 
