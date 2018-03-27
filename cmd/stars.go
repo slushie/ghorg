@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+	"github.com/slushie/ghorg/pkg/output"
+	"os"
 )
 
 // starsCmd represents the stars command
@@ -17,7 +17,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("stars called")
+		showTable()
 	},
 }
 
@@ -33,4 +33,13 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// starsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func showTable() {
+	var recs = []output.Record{
+		{"potato": "anytime", "eggs": "8am"},
+		{"potato": "never", "tacos": "3am"},
+	}
+
+	recordWriter.WriteRecords(os.Stdout, recs, nil)
 }

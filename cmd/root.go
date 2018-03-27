@@ -4,26 +4,28 @@ import (
 	"fmt"
 	"os"
 
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"strings"
+	"github.com/slushie/ghorg/pkg/output"
 )
 
 var cfgFile string
 
+var recordWriter output.RecordWriter
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "ghorg",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "A Github Organization Stats Tool",
+	Long: `This tool shows basic statistics for your Github organization.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+You can set your organization via a command line option, environment variable,
+or in the config file. 
+`,
+	PersistentPreRunE: preRun,
+	PersistentPostRun: postRun,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -38,14 +40,28 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ghorg.yaml)")
+	rootCmd.PersistentFlags().StringVar(
+		&cfgFile,
+		"config",
+		"",
+		"Path to ghorg config file",
+	)
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringP(
+		"organization",
+		"N",
+		"",
+		"Organization name",
+	)
+
+	rootCmd.PersistentFlags().StringP(
+		"output-format",
+		"F",
+		"table",
+		"Output format. One of: table, json",
+	)
+
+	rootCmd.MarkFlagRequired("organization")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -66,10 +82,31 @@ func initConfig() {
 		viper.SetConfigName(".ghorg")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	// Sane environment variable naming
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.AutomaticEnv()
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+}
+
+func preRun(cmd *cobra.Command, args []string) error {
+	f, _ := cmd.Flags().GetString("output-format")
+
+	switch strings.ToLower(f) {
+	case "json":
+		recordWriter = output.NewJson()
+	case "table":
+		recordWriter = output.NewTable()
+	default:
+		return fmt.Errorf("invalid output format: %s", f)
+	}
+
+	return nil
+}
+
+func postRun(cmd *cobra.Command, args []string) {
+
 }
