@@ -10,6 +10,7 @@ import (
 	"strings"
 	"strconv"
 	"fmt"
+	"os"
 )
 
 // starsCmd represents the stars command
@@ -31,10 +32,10 @@ func runStars(cmd *cobra.Command, args []string) {
 
 	rs, err := gh.FetchOrgRepositories(ctx, organization, nil)
 	if err != nil {
-		panic(err.Error())
+		api.Fail(err)
 	}
 
-	// these are the relevant fields
+	// these are the column names
 	fields = []string{"Stars", "Name", "URL"}
 
 	// set up the output list

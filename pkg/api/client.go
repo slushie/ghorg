@@ -17,7 +17,9 @@ type RepositoryFetcher func(opt *github.RepositoryListByOrgOptions) ([]*github.R
 
 // Create a new Github client
 func NewClient(accessToken string) *Client {
+	// TODO set friendlier defaults for eg, read timeout
 	var c = http.DefaultClient
+
 	if accessToken != "" {
 		c = createOAuthClient(accessToken)
 	}
