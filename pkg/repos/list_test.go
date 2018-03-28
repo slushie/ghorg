@@ -5,6 +5,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"sort"
 	"github.com/google/go-github/github"
+	"github.com/slushie/ghorg/pkg/output"
+	"fmt"
 )
 
 func TestListType(t *testing.T) {
@@ -28,6 +30,64 @@ func TestListType(t *testing.T) {
 					subject.Add(item)
 					So(subject.Repos, ShouldHaveLength, 1)
 					So(subject.Repos[0], ShouldEqual, item)
+				})
+			})
+
+			Convey(".Records(fields) ([]Record, error)", func() {
+				var (
+					aID int64 = 1
+					bID int64 = 2
+				)
+
+				subject := NewList()
+				subject.Add(
+					&github.Repository{ID: &aID},
+					&github.Repository{ID: &bID},
+				)
+
+				Convey("Calls .Marshal for each repo", func() {
+					var calls = 0
+					subject.Marshal = func(repo *github.Repository, fields []string) (output.Record, error) {
+						calls = calls + 1
+						return output.Record{}, nil
+					}
+
+					subject.Records(nil)
+					So(calls, ShouldEqual, subject.Len())
+				})
+
+				Convey("Collects all Records from .Marshal calls", func() {
+					records, err := subject.Records(nil)
+					So(records, ShouldHaveLength, subject.Len())
+					So(err, ShouldBeNil)
+				})
+
+				Convey("Stops calling .Marshal on the first error", func() {
+					subject.Marshal = func(repo *github.Repository, fields []string) (output.Record, error) {
+						return nil, fmt.Errorf("id %d", repo.GetID())
+					}
+
+					records, err := subject.Records(nil)
+					So(records, ShouldBeNil)
+					So(err, ShouldNotBeNil)
+					So(err.Error(), ShouldEqual, "id 1")
+				})
+
+				Convey("Passes fields to .Marshal", func() {
+					called := false
+					recordFields := []string{"field1"}
+					subject.Marshal = func(repo *github.Repository, fields []string) (output.Record, error) {
+						called = true
+						So(fields, ShouldHaveLength, len(recordFields))
+						for i := range recordFields {
+							So(fields[i], ShouldEqual, recordFields[i])
+						}
+
+						return output.Record{}, nil
+					}
+
+					subject.Records(recordFields)
+					So(called, ShouldBeTrue)
 				})
 			})
 
