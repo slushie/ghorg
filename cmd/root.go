@@ -54,6 +54,8 @@ func init() {
 		"Organization name",
 	)
 
+	viper.BindPFlag("organization", rootCmd.PersistentFlags().Lookup("organization"))
+
 	rootCmd.PersistentFlags().StringVarP(
 		&accessToken,
 		"access-token",
@@ -61,6 +63,8 @@ func init() {
 		"",
 		"Github OAuth2 access token used to authenticate REST calls.",
 	)
+
+	viper.BindPFlag("access-token", rootCmd.PersistentFlags().Lookup("access-token"))
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -91,9 +95,16 @@ func initConfig() {
 	}
 }
 
-func ensureOrganization(cmd *cobra.Command, args []string) error {
+func parseRootFlags(cmd *cobra.Command, args []string) error {
+	organization = viper.GetString("organization")
+	accessToken = viper.GetString("access-token")
+
 	if organization == "" {
 		return fmt.Errorf("missing required flag: organization")
+	}
+
+	if accessToken == "" {
+		fmt.Println("WARNING: No access token specified, you may hit rate limits from Github!")
 	}
 
 	return nil

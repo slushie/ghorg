@@ -5,7 +5,7 @@ import "github.com/spf13/cobra"
 type runHook func(cmd *cobra.Command, args []string) error
 
 var preRunHooks = []runHook{
-	ensureOrganization,
+	parseRootFlags,
 	parseListFlags,
 }
 
