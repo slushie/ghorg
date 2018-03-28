@@ -25,6 +25,8 @@ func init() {
 
 func runPulls(cmd *cobra.Command, args []string) {
 	gh := api.NewClient(accessToken)
+
+	// TODO better cancellation and deadline handling via context.Context
 	ctx := context.Background()
 
 	rs, err := gh.FetchOrgRepositories(ctx, organization, nil)
