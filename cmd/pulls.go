@@ -17,8 +17,6 @@ var pullsCmd = &cobra.Command{
 	Run:   runPulls,
 }
 
-var pullCounts RepoPullCounts
-
 func init() {
 	rootCmd.AddCommand(pullsCmd)
 	addListFlags(pullsCmd)

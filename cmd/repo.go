@@ -19,11 +19,13 @@ const (
 	AllPRStates   = "all"
 )
 
-var pullState = AllPRStates
+var (
+	pullState = AllPRStates
+	pullWorkers = 10
+	pullCounts RepoPullCounts
+)
 
 type RepoPullCounts map[int64]uint
-
-var pullWorkers = 10
 
 func MarshalRepo(repo *github.Repository, fields []string) (output.Record, error) {
 	rec := make(output.Record)
@@ -37,6 +39,9 @@ func MarshalRepo(repo *github.Repository, fields []string) (output.Record, error
 			rec[f] = repo.GetName()
 		case "url":
 			rec[f] = repo.GetHTMLURL()
+		case "prs":
+			c, _ := pullCounts[repo.GetID()]
+			rec[f] = strconv.Itoa(int(c))
 		default:
 			return nil, fmt.Errorf("unknown field %v", f)
 		}
