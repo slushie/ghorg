@@ -18,7 +18,16 @@ var accessToken string
 var rootCmd = &cobra.Command{
 	Use:   "ghorg",
 	Short: "A Github Organization Stats Tool",
-	Long: `This tool shows basic statistics for your Github organization.
+	Long: `
+ e88~~\  888   |                       / 
+d888     888___|  e88~-_  888-~\ e88~88e 
+8888 __  888   | d888   i 888    888 888 
+8888   | 888   | 8888   | 888    "88_88" 
+Y888   | 888   | Y888   ' 888     /      
+ "88__/  888   |  "88_-~  888    Cb      
+                                  Y8""8D 
+
+This tool shows basic statistics for your Github organization.
 
 You can set your organization via a command line option, environment variable,
 or in the config file. 
