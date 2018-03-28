@@ -25,6 +25,11 @@ func NewTable() RecordWriter {
 
 // Write each record as a line. Note that fields defaults to all fields in the first record.
 func (t *Table) WriteRecords(w io.Writer, records []Record, fields []string) error {
+	if len(records) == 0 {
+		fmt.Fprint(w, "No records found!\n")
+		return nil
+	}
+
 	tw := tabwriter.NewWriter(w, t.minwidth, t.tabwidth, t.padding, ' ', tabwriter.StripEscape)
 
 	for i, r := range records {
