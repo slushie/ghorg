@@ -4,24 +4,31 @@ import (
 	"github.com/google/go-github/github"
 	"fmt"
 	"os"
+	"io"
 )
+
+// make testing easier by parameterizing os.Exit
+var failExit = os.Exit
+
+// another testing shim
+var failWriter io.Writer = os.Stdout
 
 func Fail(err error) {
 	switch e := err.(type) {
 	case *github.RateLimitError, *github.AbuseRateLimitError:
-		fmt.Printf("ERROR: Rate limit reached! %s\n", err.Error())
+		fmt.Fprintf(failWriter, "ERROR: Rate limit reached! %s\n", e.Error())
 
 	case *github.ErrorResponse:
-		fmt.Printf("ERROR: Github replied: %d %s\n", e.Response.StatusCode, e.Message)
-		fmt.Printf("\tfrom: %s\n", e.Response.Request.URL)
+		fmt.Fprintf(failWriter, "ERROR: Github replied: %d %s\n", e.Response.StatusCode, e.Message)
+		fmt.Fprintf(failWriter, "\tfrom: %s\n", e.Response.Request.URL)
 
 		if e.DocumentationURL != "" {
-			fmt.Printf("\tdocs: %s\n", e.DocumentationURL)
+			fmt.Fprintf(failWriter, "\tdocs: %s\n", e.DocumentationURL)
 		}
 
 	default:
-		fmt.Printf("ERROR: [%T] %s\n", err, err.Error())
+		fmt.Fprintf(failWriter, "ERROR: [%T] %s\n", err, err.Error())
 	}
 
-	os.Exit(1)
+	failExit(1)
 }
