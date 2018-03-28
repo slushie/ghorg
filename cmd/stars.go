@@ -10,7 +10,6 @@ import (
 	"strings"
 	"strconv"
 	"fmt"
-	"os"
 )
 
 // starsCmd represents the stars command
@@ -46,7 +45,7 @@ func runStars(cmd *cobra.Command, args []string) {
 }
 
 func CompareRepoStars(a, b *github.Repository) bool {
-	return a.GetStargazersCount() < b.GetStargazersCount()
+	return a.GetStargazersCount() > b.GetStargazersCount()
 }
 
 func MarshalRepoStars(repo *github.Repository, fields []string) (output.Record, error) {
@@ -58,7 +57,7 @@ func MarshalRepoStars(repo *github.Repository, fields []string) (output.Record, 
 		case "name":
 			rec[f] = repo.GetName()
 		case "url":
-			rec[f] = repo.GetURL()
+			rec[f] = repo.GetHTMLURL()
 		default:
 			return nil, fmt.Errorf("unknown field %v", f)
 		}

@@ -37,9 +37,9 @@ func addListFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(
 		&listOptions.Reverse,
 		"reverse",
-		"R",
+		"r",
 		false,
-		"Sort in reverse order",
+		"Sort in reverse (ie, ascending) order",
 	)
 
 	cmd.Flags().StringVarP(
@@ -85,11 +85,19 @@ func outputRecords(cmd *cobra.Command, args []string) error {
 		}
 
 		if listOptions.Count != 0 {
-			records = records[0:listOptions.Count]
+			n := min(int(listOptions.Count), len(records))
+			records = records[0:n]
 		}
 
 		return recordWriter.WriteRecords(os.Stdout, records, fields)
 	} else {
 		return nil
 	}
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
