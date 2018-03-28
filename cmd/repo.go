@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strconv"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"context"
 	"github.com/slushie/ghorg/pkg/api"
 	"golang.org/x/time/rate"
@@ -44,6 +43,18 @@ func MarshalRepo(repo *github.Repository, fields []string) (output.Record, error
 		case "prs":
 			c, _ := pullCounts[repo.GetID()]
 			rec[f] = strconv.Itoa(int(c))
+		case "contrib-%":
+			prs, _ := pullCounts[repo.GetID()]
+			forks := repo.GetForksCount()
+			if prs == 0 {
+				rec[f] = "-"
+			} else if forks == 0 {
+				rec[f] = "+"
+			} else {
+				pct := float64(prs) / float64(forks)
+				rec[f] = fmt.Sprintf("%d%%", int(100.0*pct))
+			}
+
 		default:
 			return nil, fmt.Errorf("unknown field %v", f)
 		}
@@ -56,7 +67,7 @@ func addPullFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(
 		"state",
 		"s",
-		AllPRStates,
+		OpenPRState,
 		"Pull request state. One of: open, closed, all",
 	)
 
@@ -73,12 +84,11 @@ func addPullFlags(cmd *cobra.Command) {
 		pullLimit,
 		"Number of requests per second to Github API",
 	)
-
-	viper.BindPFlags(cmd.Flags())
 }
 
 func parsePullFlags(cmd *cobra.Command, args []string) error {
-	pullState = strings.ToLower(viper.GetString("state"))
+	pullState, _ = cmd.Flags().GetString("state")
+	pullState = strings.ToLower(pullState)
 
 	switch pullState {
 	case OpenPRState:
@@ -88,12 +98,12 @@ func parsePullFlags(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid pr state: %s", pullState)
 	}
 
-	pullWorkers = viper.GetInt("max-workers")
+	pullWorkers, _ = cmd.Flags().GetInt("max-workers")
 	if pullWorkers < 1 {
 		return fmt.Errorf("invalid max workers: %d", pullWorkers)
 	}
 
-	pullLimit = viper.GetFloat64("rate-limit")
+	pullLimit, _ = cmd.Flags().GetFloat64("rate-limit")
 	if pullLimit < 1 {
 		return fmt.Errorf("invalid rate limit: %f", pullLimit)
 	}
