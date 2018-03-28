@@ -14,7 +14,7 @@ import (
 
 // starsCmd represents the stars command
 var starsCmd = &cobra.Command{
-	Use:   "stars",
+	Use:   "stars [organization]",
 	Short: "List repos by stargazers",
 	Long:  `List all repositories in the organization, sorted by number of stars.`,
 	Run:   runStars,
@@ -40,7 +40,7 @@ func runStars(cmd *cobra.Command, args []string) {
 	// set up the output list
 	repoList = repos.NewList()
 	repoList.Add(rs...)
-	repoList.Marshal = MarshalRepoStars
+	repoList.Marshal = MarshalRepo
 	repoList.Compare = CompareRepoStars
 }
 
@@ -48,12 +48,14 @@ func CompareRepoStars(a, b *github.Repository) bool {
 	return a.GetStargazersCount() > b.GetStargazersCount()
 }
 
-func MarshalRepoStars(repo *github.Repository, fields []string) (output.Record, error) {
+func MarshalRepo(repo *github.Repository, fields []string) (output.Record, error) {
 	rec := make(output.Record)
 	for _, f := range fields {
 		switch strings.ToLower(f) {
 		case "stars":
 			rec[f] = strconv.Itoa(repo.GetStargazersCount())
+		case "forks":
+			rec[f] = strconv.Itoa(repo.GetForksCount())
 		case "name":
 			rec[f] = repo.GetName()
 		case "url":
