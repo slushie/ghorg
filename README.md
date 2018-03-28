@@ -19,11 +19,15 @@ Stars  Name               URL
 
 ## Installation
 
-You can install it using `go get`:
+If you are a Go developer or if you have the `go` tool configured, 
+you can install ghorg using `go get`:
 
 ```bash
 $ go get github.com/slushie/ghorg
 ``` 
+
+Alternatively, you can install a [binary release from Github](https://github.com/slushie/ghorg/releases)
+into your system's `$PATH`.
 
 ## Usage
 
@@ -64,6 +68,25 @@ command line.
 
 NB: This tool will warn you when no access token has been specified. You can obtain a 
 [personal access token](https://github.com/settings/tokens) from the Github web UI.
+
+## Development
+
+To hack on this code, clone the repo (or use `go get`) and build by running:
+
+```bash
+$ make depends
+$ make
+```
+
+To run the automated test suite, run:
+
+```bash
+$ make dev-depends
+$ make test
+``` 
+
+This will watch for code changes, run unit tests, and report results to your browser. See 
+[GoConvey](https://github.com/smartystreets/goconvey) for more details on adding unit tests.
 
 ## Roadmap
 
