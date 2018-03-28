@@ -56,6 +56,6 @@ func CompareRepoPulls(a, b *github.Repository) bool {
 		bID = b.GetID()
 	)
 
-	return pullCounts[aID].Count > pullCounts[bID].Count
+	return pullCounts[aID] > pullCounts[bID]
 }
 

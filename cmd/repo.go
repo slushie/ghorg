@@ -21,13 +21,7 @@ const (
 
 var pullState = AllPRStates
 
-type countPullsResult struct {
-	Repo  *github.Repository
-	Count uint
-	Err   error
-}
-
-type RepoPullCounts map[int64]countPullsResult
+type RepoPullCounts map[int64]uint
 
 var pullWorkers = 10
 
@@ -90,9 +84,19 @@ func parsePullFlags(cmd *cobra.Command, args []string) error {
 
 // Runs a work queue and waits for the results.
 func countRepoPulls(ctx context.Context, c *api.Client, rs []*github.Repository) (RepoPullCounts, error) {
-	repos := make(chan *github.Repository, pullWorkers)
-	results := make(chan countPullsResult)
+	type result struct {
+		Repo  *github.Repository
+		Count uint
+		Err   error
+	}
+
+	jobs := make(chan *github.Repository, len(rs))
+	results := make(chan result)
 	state := pullState
+
+	// load up the queue of work
+	for _, r := range rs { jobs <- r }
+	close(jobs)
 
 	// start workers
 	wg := &sync.WaitGroup{}
@@ -100,10 +104,10 @@ func countRepoPulls(ctx context.Context, c *api.Client, rs []*github.Repository)
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			for repo := range repos {
+			for repo := range jobs {
 				opt := github.PullRequestListOptions{State: state}
 				count, err := c.CountRepositoryPRs(ctx, repo, &opt)
-				results <- countPullsResult{
+				results <- result{
 					Repo:  repo,
 					Count: count,
 					Err:   err,
@@ -112,12 +116,11 @@ func countRepoPulls(ctx context.Context, c *api.Client, rs []*github.Repository)
 		}(i)
 	}
 
-	// load up the queue of work
-	for _, r := range rs { repos <- r }
-	close(repos)
-
 	// wait for workers to finish
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
 
 	// collect results
 	pullCounts := make(RepoPullCounts)
@@ -127,7 +130,7 @@ func countRepoPulls(ctx context.Context, c *api.Client, rs []*github.Repository)
 		}
 
 		id := res.Repo.GetID()
-		pullCounts[id] = res
+		pullCounts[id] = res.Count
 	}
 
 	return pullCounts, nil
