@@ -10,10 +10,11 @@ import (
 
 // contribCmd represents the contrib command
 var contribCmd = &cobra.Command{
-	Use:   "contrib [organization]",
-	Short: "List repos by PRs",
-	Long:  `List all repositories in the organization, sorted by number of pull requests.`,
-	Run:   runContrib,
+	Use:     "contrib [organization]",
+	Short:   "List repos by PRs",
+	Long:    `List all repositories in the organization, sorted by number of pull requests.`,
+	Run:     runContrib,
+	PreRunE: parsePullFlags,
 }
 
 func init() {
@@ -58,4 +59,3 @@ func CompareRepoContrib(a, b *github.Repository) bool {
 
 	return aPct > bPct
 }
-

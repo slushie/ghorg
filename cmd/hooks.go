@@ -7,7 +7,6 @@ type runHook func(cmd *cobra.Command, args []string) error
 var preRunHooks = []runHook{
 	parseRootFlags,
 	parseListFlags,
-	parsePullFlags,
 }
 
 var postRunHooks = []runHook{

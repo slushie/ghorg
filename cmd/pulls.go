@@ -10,11 +10,12 @@ import (
 
 // pullsCmd represents the pulls command
 var pullsCmd = &cobra.Command{
-	Use:   "pulls [organization]",
+	Use:     "pulls [organization]",
 	Aliases: []string{"pr", "prs"},
-	Short: "List repos by PRs",
-	Long:  `List all repositories in the organization, sorted by number of pull requests.`,
-	Run:   runPulls,
+	Short:   "List repos by PRs",
+	Long:    `List all repositories in the organization, sorted by number of pull requests.`,
+	Run:     runPulls,
+	PreRunE: parsePullFlags,
 }
 
 func init() {
@@ -58,4 +59,3 @@ func CompareRepoPulls(a, b *github.Repository) bool {
 
 	return pullCounts[aID] > pullCounts[bID]
 }
-

@@ -28,9 +28,6 @@ Y888   | 888   | Y888   ' 888     /
                                   Y8""8D 
 
 This tool shows basic statistics for your Github organization.
-
-You can set your organization via a command line option, environment variable,
-or in the config file. 
 `,
 	PersistentPreRunE:  preRunE,
 	PersistentPostRunE: postRunE,
