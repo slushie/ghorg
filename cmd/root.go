@@ -89,18 +89,20 @@ func initConfig() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
+	// Read in config silently
+	viper.ReadInConfig()
 }
 
 func parseRootFlags(cmd *cobra.Command, args []string) error {
 	organization = viper.GetString("organization")
 	accessToken = viper.GetString("access-token")
 
+	if len(args) == 1 {
+		organization = args[0]
+	}
+
 	if organization == "" {
-		return fmt.Errorf("missing required flag: organization")
+		return fmt.Errorf("missing required param: organization")
 	}
 
 	if accessToken == "" {
