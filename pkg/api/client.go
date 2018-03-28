@@ -13,7 +13,9 @@ type (
 	castClient = *Client
 )
 
-type RepositoryFetcher func(opt *github.RepositoryListByOrgOptions) ([]*github.Repository, *github.Response, error)
+type RepositoryFetcher func(
+	opt *github.RepositoryListByOrgOptions,
+) ([]*github.Repository, *github.Response, error)
 
 // Create a new Github client
 func NewClient(accessToken string) *Client {
@@ -39,6 +41,7 @@ func createOAuthClient(token string) *http.Client {
 	return oauth2.NewClient(ctx, src)
 }
 
+// Fetch all repos for an org, with pagination support.
 func (c *Client) FetchOrgRepositories(
 	ctx context.Context,
 	org string,
@@ -65,4 +68,37 @@ func (c *Client) FetchOrgRepositories(
 	}
 
 	return allRepos, nil
+}
+
+// Count all pull requests for a given repo, with pagination support.
+func (c *Client) CountRepositoryPRs(
+	ctx context.Context,
+	repo *github.Repository,
+	opt *github.PullRequestListOptions) (uint, error) {
+	if opt == nil {
+		opt = &github.PullRequestListOptions{}
+	}
+
+	opt.ListOptions.PerPage = 100
+
+	var count uint = 0
+	for {
+		pulls, resp, err := c.PullRequests.List(
+			ctx,
+			repo.GetOwner().GetName(),
+			repo.GetName(),
+			opt,
+		)
+		if err != nil {
+			return 0, err
+		}
+
+		count += uint(len(pulls))
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	return count, nil
 }
