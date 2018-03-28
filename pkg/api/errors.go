@@ -13,8 +13,10 @@ func Fail(err error) {
 
 	case *github.ErrorResponse:
 		fmt.Printf("ERROR: Github replied: %d %s\n", e.Response.StatusCode, e.Message)
+		fmt.Printf("\tfrom: %s\n", e.Response.Request.URL)
+
 		if e.DocumentationURL != "" {
-			fmt.Printf("\tsee: %s\n", e.DocumentationURL)
+			fmt.Printf("\tdocs: %s\n", e.DocumentationURL)
 		}
 
 	default:
