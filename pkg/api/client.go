@@ -85,7 +85,7 @@ func (c *Client) CountRepositoryPRs(
 	for {
 		pulls, resp, err := c.PullRequests.List(
 			ctx,
-			repo.GetOwner().GetName(),
+			repo.GetOwner().GetLogin(),
 			repo.GetName(),
 			opt,
 		)
