@@ -6,10 +6,6 @@ import (
 	"context"
 	"github.com/slushie/ghorg/pkg/repos"
 	"github.com/google/go-github/github"
-	"github.com/slushie/ghorg/pkg/output"
-	"strings"
-	"strconv"
-	"fmt"
 )
 
 // starsCmd represents the stars command
@@ -46,24 +42,4 @@ func runStars(cmd *cobra.Command, args []string) {
 
 func CompareRepoStars(a, b *github.Repository) bool {
 	return a.GetStargazersCount() > b.GetStargazersCount()
-}
-
-func MarshalRepo(repo *github.Repository, fields []string) (output.Record, error) {
-	rec := make(output.Record)
-	for _, f := range fields {
-		switch strings.ToLower(f) {
-		case "stars":
-			rec[f] = strconv.Itoa(repo.GetStargazersCount())
-		case "forks":
-			rec[f] = strconv.Itoa(repo.GetForksCount())
-		case "name":
-			rec[f] = repo.GetName()
-		case "url":
-			rec[f] = repo.GetHTMLURL()
-		default:
-			return nil, fmt.Errorf("unknown field %v", f)
-		}
-	}
-
-	return rec, nil
 }
