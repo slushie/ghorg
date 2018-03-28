@@ -11,8 +11,9 @@ import (
 // contribCmd represents the contrib command
 var contribCmd = &cobra.Command{
 	Use:     "contrib [organization]",
-	Short:   "List repos by PRs",
-	Long:    `List all repositories in the organization, sorted by number of pull requests.`,
+	Short:   "List repos by contribution percentage",
+	Long:    `List all repositories in the organization, sorted by contribution percentage. This
+value is calculated by dividing the number of pull requests by the number of forks.`,
 	Run:     runContrib,
 	PreRunE: parsePullFlags,
 }

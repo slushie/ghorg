@@ -46,7 +46,7 @@ into your system's `$PATH`.
       ghorg [command]
     
     Available Commands:
-      contrib     List repos by PRs
+      contrib     List repos by contribution percentage
       forks       List repos by forks
       help        Help about any command
       pulls       List repos by PRs
